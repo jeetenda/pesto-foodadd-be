@@ -133,17 +133,21 @@ const getRestaurant = async (req, res) => {
   let query =q;
   console.log(query);
   try {
-    let result = await Restaurant.find(
-      {
-        "location.city_id": parseInt(city_id),
-        $text: {
-          $search: query,
-          $diacriticSensitive: false,
-          $caseSensitive: false,
-        },
-      },
-      { score: { $meta: "textScore" } }
-    ).sort({ score: { $meta: "textScore" } });
+
+    // [{$unwind: "$menu"},
+    // {$match:{"menu.dish":{$regex: "aviNash", $options: 'i'}, "location.city_id":2}},
+    // {$group:{_id:"$name", total:{$sum: 1}, dished:{$push:"$menu.dish"}, location:{$first:"$location.city"}}}]
+
+
+
+    let result = await Restaurant.aggregate(
+      [{$unwind: "$menu"},
+      {$match:{"menu.dish":{$regex: q, $options: 'i'}, "location.city_id":2}},
+      {$group:{_id:"$name", total:{$sum: 1}, dished:{$push:"$menu.dish"}, 
+      
+      id:{$first:"$id"}}}]
+      
+    );
     return res.json({ err: false, message: "Success", result: result });
   } catch (err) {
     console.log(err);
